@@ -8,7 +8,7 @@
             <span class="aplayer-title">No audio</span>
             <span class="aplayer-author"></span>
         </div>
-        <div class="aplayer-lrc">
+        <div class="aplayer-lrc aplayer-lrc-hide">
             <div class="aplayer-lrc-contents" style="transform: translateY(0); -webkit-transform: translateY(0);"></div>
         </div>
         <div class="aplayer-controller">
@@ -54,7 +54,7 @@
                 <button type="button" class="aplayer-icon aplayer-icon-menu">
                     {{@ icons.menu }}
                 </button>
-                <button type="button" class="aplayer-icon aplayer-icon-lrc">
+                <button type="button" class="aplayer-icon aplayer-icon-lrc aplayer-icon-lrc-inactivity">
                     {{@ icons.lrc }}
                 </button>
             </div>
@@ -134,7 +134,7 @@
                 <button type="button" class="aplayer-icon aplayer-icon-menu">
                     {{@ icons.menu }}
                 </button>
-                <button type="button" class="aplayer-icon aplayer-icon-lrc">
+                <button type="button" class="aplayer-icon aplayer-icon-lrc aplayer-icon-lrc-inactivity">
                     {{@ icons.lrc }}
                 </button>
             </div>
@@ -143,7 +143,7 @@
     <div class="aplayer-notice"></div>
     <div class="aplayer-miniswitcher"><button class="aplayer-icon">{{@ icons.right }}</button></div>
 </div>
-<div class="aplayer-lrc">
+<div class="aplayer-lrc aplayer-lrc-hide">
     <div class="aplayer-lrc-contents" style="transform: translateY(0); -webkit-transform: translateY(0);"></div>
 </div>
 {{/if}}
