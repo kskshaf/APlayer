@@ -95,6 +95,11 @@ class APlayer {
             this.list.switch(0);
         }
 
+        // restore lrc state
+        if (this.lrc && this.storage.get('lrcActive')) {
+            this.lrc.show();
+        }
+
         // autoplay
         if (this.options.autoplay) {
             this.play();

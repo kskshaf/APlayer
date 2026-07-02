@@ -9,6 +9,7 @@ class Storage {
             this.data = {};
         }
         this.data.volume = this.data.volume || player.options.volume;
+        this.data.lrcActive = this.data.lrcActive !== undefined ? this.data.lrcActive : false;
     }
 
     get(key) {
