@@ -425,6 +425,9 @@ class APlayer {
             this.container.classList.add('aplayer-narrow');
         } else if (mode === 'normal') {
             this.container.classList.remove('aplayer-narrow');
+            if (this.options.fixed && this.list.audios.length) {
+                this.list.show();
+            }
         }
     }
 
