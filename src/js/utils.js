@@ -45,7 +45,7 @@ const utils = {
             return arr;
         }
         return shuffle(
-            [...Array(length)].map(function(item, i) {
+            [...Array(length)].map(function (item, i) {
                 return i;
             })
         );

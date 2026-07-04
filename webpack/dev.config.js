@@ -1,6 +1,6 @@
 const path = require('path');
 const webpack = require('webpack');
-const GitRevisionPlugin = require('git-revision-webpack-plugin');
+const { GitRevisionPlugin } = require('git-revision-webpack-plugin');
 const gitRevisionPlugin = new GitRevisionPlugin();
 const autoprefixer = require('autoprefixer');
 const cssnano = require('cssnano');
@@ -17,20 +17,27 @@ module.exports = {
     output: {
         path: path.resolve(__dirname, '..', 'dist'),
         filename: '[name].js',
-        library: '[name]',
-        libraryTarget: 'umd',
-        libraryExport: 'default',
-        umdNamedDefine: true,
+        library: {
+            name: '[name]',
+            type: 'umd',
+            export: 'default',
+            umdNamedDefine: true,
+        },
         publicPath: '/',
     },
 
     resolve: {
         modules: ['node_modules'],
         extensions: ['.js', '.scss'],
+        fallback: {
+            dgram: false,
+            fs: false,
+            net: false,
+            tls: false,
+        },
     },
 
     module: {
-        strictExportPresence: true,
         rules: [
             {
                 test: /\.js$/,
@@ -57,7 +64,9 @@ module.exports = {
                     {
                         loader: 'postcss-loader',
                         options: {
-                            plugins: [autoprefixer, cssnano],
+                            postcssOptions: {
+                                plugins: [autoprefixer(), cssnano()],
+                            },
                         },
                     },
                     'sass-loader',
@@ -83,15 +92,21 @@ module.exports = {
 
     devServer: {
         compress: true,
-        contentBase: path.resolve(__dirname, '..', 'demo'),
-        clientLogLevel: 'none',
-        quiet: false,
+        static: {
+            directory: path.resolve(__dirname, '..', 'demo'),
+        },
+        client: {
+            logging: 'none',
+        },
         open: true,
         historyApiFallback: {
             disableDotRule: true,
         },
-        watchOptions: {
-            ignored: /node_modules/,
+        watchFiles: {
+            paths: ['src/**/*', 'demo/**/*'],
+            options: {
+                ignored: /node_modules/,
+            },
         },
     },
 
@@ -101,13 +116,6 @@ module.exports = {
             GIT_HASH: JSON.stringify(gitRevisionPlugin.version()),
         }),
     ],
-
-    node: {
-        dgram: 'empty',
-        fs: 'empty',
-        net: 'empty',
-        tls: 'empty',
-    },
 
     performance: {
         hints: false,

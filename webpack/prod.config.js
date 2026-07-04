@@ -1,7 +1,8 @@
 const path = require('path');
 const webpack = require('webpack');
-const GitRevisionPlugin = require('git-revision-webpack-plugin');
+const { GitRevisionPlugin } = require('git-revision-webpack-plugin');
 const gitRevisionPlugin = new GitRevisionPlugin();
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const autoprefixer = require('autoprefixer');
 const cssnano = require('cssnano');
 
@@ -19,20 +20,27 @@ module.exports = {
     output: {
         path: path.resolve(__dirname, '..', 'dist'),
         filename: '[name].min.js',
-        library: '[name]',
-        libraryTarget: 'umd',
-        libraryExport: 'default',
-        umdNamedDefine: true,
+        library: {
+            name: '[name]',
+            type: 'umd',
+            export: 'default',
+            umdNamedDefine: true,
+        },
         publicPath: '/',
     },
 
     resolve: {
         modules: ['node_modules'],
         extensions: ['.js', '.scss'],
+        fallback: {
+            dgram: false,
+            fs: false,
+            net: false,
+            tls: false,
+        },
     },
 
     module: {
-        strictExportPresence: true,
         rules: [
             {
                 test: /\.js$/,
@@ -50,7 +58,7 @@ module.exports = {
             {
                 test: /\.scss$/,
                 use: [
-                    'style-loader',
+                    MiniCssExtractPlugin.loader,
                     {
                         loader: 'css-loader',
                         options: {
@@ -60,7 +68,9 @@ module.exports = {
                     {
                         loader: 'postcss-loader',
                         options: {
-                            plugins: [autoprefixer, cssnano],
+                            postcssOptions: {
+                                plugins: [autoprefixer(), cssnano()],
+                            },
                         },
                     },
                     'sass-loader',
@@ -85,16 +95,12 @@ module.exports = {
     },
 
     plugins: [
+        new MiniCssExtractPlugin({
+            filename: '[name].min.css',
+        }),
         new webpack.DefinePlugin({
             APLAYER_VERSION: `"${require('../package.json').version}"`,
             GIT_HASH: JSON.stringify(gitRevisionPlugin.version()),
         }),
     ],
-
-    node: {
-        dgram: 'empty',
-        fs: 'empty',
-        net: 'empty',
-        tls: 'empty',
-    },
 };
