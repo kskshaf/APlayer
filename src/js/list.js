@@ -156,8 +156,7 @@ class List {
 
             this.player.setAudio(audio);
 
-            this.player.lrc && this.player.lrc.switch(this.index);
-            this.player.lrc && this.player.lrc.update(0);
+            this.player.lrc && this.player.lrc.switch(this.index, 0);
 
             // set duration time
             if (this.player.duration !== 1) {

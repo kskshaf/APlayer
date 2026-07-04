@@ -78,6 +78,7 @@ class APlayer {
                 container: this.template.lrc,
                 async: this.options.lrcType === 3,
                 player: this,
+                active: !this.options.fixed,
             });
         }
         this.events = new Events();
@@ -96,7 +97,7 @@ class APlayer {
         }
 
         // restore lrc state
-        if (this.lrc && this.storage.get('lrcActive')) {
+        if (this.lrc && this.options.fixed && this.storage.get('lrcActive')) {
             this.lrc.show();
         }
 

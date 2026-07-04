@@ -8,12 +8,14 @@ class Lrc {
         this.parsed = [];
         this.index = 0;
         this.current = [];
-        this.isActive = false;
+        this.isActive = options.active || false;
     }
 
     show() {
         this.isActive = true;
-        this.player.storage.set('lrcActive', true);
+        if (this.player.options.fixed) {
+            this.player.storage.set('lrcActive', true);
+        }
         this.player.events.trigger('lrcshow');
         this.player.template.lrcWrap.classList.remove('aplayer-lrc-hide');
         this.player.template.lrcButton.classList.remove('aplayer-icon-lrc-inactivity');
@@ -22,9 +24,12 @@ class Lrc {
 
     hide() {
         this.isActive = false;
-        this.player.storage.set('lrcActive', false);
+        if (this.player.options.fixed) {
+            this.player.storage.set('lrcActive', false);
+        }
         this.player.events.trigger('lrchide');
         this.player.template.lrcWrap.classList.add('aplayer-lrc-hide');
+        this.player.template.lrcButton.classList.add('aplayer-icon-lrc-inactivity');
         this.container.innerHTML = '';
     }
 
@@ -41,21 +46,37 @@ class Lrc {
             return;
         }
 
-        if (this.index > this.current.length - 1 || currentTime < this.current[this.index][0] || !this.current[this.index + 1] || currentTime >= this.current[this.index + 1][0]) {
-            for (let i = 0; i < this.current.length; i++) {
-                if (currentTime >= this.current[i][0] && (!this.current[i + 1] || currentTime < this.current[i + 1][0])) {
-                    this.index = i;
-                    this.container.style.transform = `translateY(${-this.index * 16}px)`;
-                    this.container.style.webkitTransform = `translateY(${-this.index * 16}px)`;
-                    this.container.getElementsByClassName('aplayer-lrc-current')[0].classList.remove('aplayer-lrc-current');
-                    this.container.getElementsByTagName('p')[i].classList.add('aplayer-lrc-current');
-                }
+        if (!this.current.length) {
+            return;
+        }
+
+        let index = 0;
+        for (let i = 0; i < this.current.length; i++) {
+            if (currentTime >= this.current[i][0] && (!this.current[i + 1] || currentTime < this.current[i + 1][0])) {
+                index = i;
+                break;
             }
+        }
+
+        const current = this.container.getElementsByClassName('aplayer-lrc-current')[0];
+        const target = this.container.getElementsByTagName('p')[index];
+        if (target && (this.index !== index || !target.classList.contains('aplayer-lrc-current'))) {
+            this.index = index;
+            this.container.style.transform = `translateY(${-this.index * 16}px)`;
+            this.container.style.webkitTransform = `translateY(${-this.index * 16}px)`;
+            current && current.classList.remove('aplayer-lrc-current');
+            target.classList.add('aplayer-lrc-current');
         }
     }
 
-    switch(index) {
+    switch(index, currentTime = this.player.audio.currentTime) {
         if (!this.isActive) {
+            return;
+        }
+
+        if (!this.player.list.audios[index]) {
+            this.current = [];
+            this.container.innerHTML = '';
             return;
         }
 
@@ -64,11 +85,11 @@ class Lrc {
                 if (this.player.list.audios[index].lrc) {
                     this.parsed[index] = this.parse(this.player.list.audios[index].lrc);
                 } else {
-                    this.parsed[index] = [['00:00', 'Not available']];
+                    this.parsed[index] = [[0, 'Not available']];
                 }
             } else {
                 if (this.player.list.audios[index].lrc) {
-                    this.parsed[index] = [['00:00', 'Loading']];
+                    this.parsed[index] = [[0, 'Loading']];
                     const xhr = new XMLHttpRequest();
                     xhr.onreadystatechange = () => {
                         if (index === this.player.list.index && xhr.readyState === 4) {
@@ -76,20 +97,22 @@ class Lrc {
                                 this.parsed[index] = this.parse(xhr.responseText);
                             } else {
                                 this.player.notice(`LRC file request fails: status ${xhr.status}`);
-                                this.parsed[index] = [['00:00', 'Not available']];
+                                this.parsed[index] = [[0, 'Not available']];
                             }
-                            this.container.innerHTML = tplLrc({
-                                lyrics: this.parsed[index],
-                            });
-                            this.update(0);
-                            this.current = this.parsed[index];
+                            if (this.isActive) {
+                                this.container.innerHTML = tplLrc({
+                                    lyrics: this.parsed[index],
+                                });
+                                this.current = this.parsed[index];
+                                this.update();
+                            }
                         }
                     };
                     const apiurl = this.player.list.audios[index].lrc;
                     xhr.open('get', apiurl, true);
                     xhr.send(null);
                 } else {
-                    this.parsed[index] = [['00:00', '']];
+                    this.parsed[index] = [];
                 }
             }
         }
@@ -98,7 +121,7 @@ class Lrc {
             lyrics: this.parsed[index],
         });
         this.current = this.parsed[index];
-        this.update(0);
+        this.update(currentTime);
     }
 
     /**
@@ -156,6 +179,8 @@ class Lrc {
 
     clear() {
         this.parsed = [];
+        this.current = [];
+        this.index = 0;
         this.container.innerHTML = '';
     }
 }
